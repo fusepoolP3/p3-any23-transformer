@@ -1,4 +1,4 @@
-p3-any23-transformer
-====================
+Any23 Transformer
+=================
 
-A Transformer based on any23.apache.org
+This module provides a Fusepool P3 Transformer implementation for [Apache Any23](any23.apache.org)
