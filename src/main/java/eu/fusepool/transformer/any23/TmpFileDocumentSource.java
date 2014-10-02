@@ -20,45 +20,47 @@ import org.slf4j.LoggerFactory;
 
 class TmpFileDocumentSource implements DocumentSource , Closeable {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private final String type;
     private final long length;
 
-	private File tmpFile;
-	
-	private String requestId;
+    private File tmpFile;
+    
+    final private String docUri;
 
-    public TmpFileDocumentSource(String requestId, InputStream in, MimeType type) 
-    		throws IOException {
+    public TmpFileDocumentSource(String requestId, InputStream in, MimeType type,
+            String docUri) throws IOException {
         assert in != null;
         assert type != null;
         assert requestId != null;
-        this.requestId = requestId;
-		String prefix;
-		if(requestId == null || requestId.length() < 3){
-			prefix = UUID.randomUUID().toString();
-		} else {
-			prefix = requestId;
-		}
+        assert docUri != null;
+        String prefix;
+        if(requestId == null || requestId.length() < 3){
+            prefix = UUID.randomUUID().toString();
+        } else {
+            prefix = requestId;
+        }
+        this.docUri = docUri;
+        log.debug(" - docUri: {}", docUri);
         this.type = type.toString();
         log.debug(" - type: {}", type);
-		tmpFile = File.createTempFile(prefix, ".entity");
-		tmpFile.deleteOnExit();
-		log.debug(" - tmpFile: {}",tmpFile);
-		XZCompressorOutputStream out = new XZCompressorOutputStream(new FileOutputStream(tmpFile));
-		try {
-			length = IOUtils.copyLarge(in, out);
-			log.debug(" - copied {}kBytes from Request Body", Math.round(length/100f)/10);
-		} finally {
-			out.close();
-		}
+        tmpFile = File.createTempFile(prefix, ".entity");
+        tmpFile.deleteOnExit();
+        log.debug(" - tmpFile: {}",tmpFile);
+        XZCompressorOutputStream out = new XZCompressorOutputStream(new FileOutputStream(tmpFile));
+        try {
+            length = IOUtils.copyLarge(in, out);
+            log.debug(" - copied {}kBytes from Request Body", Math.round(length/100f)/10);
+        } finally {
+            out.close();
+        }
     }
     
     @Override
     public InputStream openInputStream() throws IOException {
         return new BufferedInputStream(new XZCompressorInputStream(
-        		new FileInputStream(tmpFile)));
+                new FileInputStream(tmpFile)));
     }
 
     @Override
@@ -73,7 +75,7 @@ class TmpFileDocumentSource implements DocumentSource , Closeable {
 
     @Override
     public String getDocumentURI() {
-        return "http://www.example.com/fusepool"+requestId;
+        return docUri;
     }
 
     @Override
@@ -83,14 +85,22 @@ class TmpFileDocumentSource implements DocumentSource , Closeable {
     
     @Override
     public void close() throws IOException {
-    	if(tmpFile != null){
-    		log.debug(" - clean {}", tmpFile);
-    		tmpFile.delete();
-    	}
+        if(tmpFile != null){
+            log.debug(" - clean {}", tmpFile);
+            tmpFile.delete();
+        }
     }
     
     @Override
     protected void finalize() throws Throwable {
-    	close();
+        close();
+    }
+    
+    @Override
+    public String toString() {
+        return new StringBuilder(getClass().getSimpleName()).append("[uri: ")
+                .append(docUri).append(" | file: ").append(tmpFile)
+                .append(" | length: ").append(length/1000)
+                .append("kByte]").toString();
     }
 }

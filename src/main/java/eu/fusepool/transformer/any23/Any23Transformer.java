@@ -1,9 +1,10 @@
 package eu.fusepool.transformer.any23;
 
+
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,10 +12,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -38,21 +36,16 @@ import org.apache.any23.writer.TripleHandlerException;
 import org.apache.any23.writer.TurtleWriter;
 import org.apache.clerezza.rdf.core.serializedform.SupportedFormat;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.util.ConcurrentHashSet;
-import org.eclipse.jetty.util.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.fusepool.p3.transformer.AsyncTransformer;
 import eu.fusepool.p3.transformer.HttpRequestEntity;
-import eu.fusepool.p3.transformer.AsyncTransformer.CallBackHandler;
-import eu.fusepool.p3.transformer.commons.Entity;
-import eu.fusepool.p3.transformer.commons.util.WritingEntity;
 
 public class Any23Transformer implements AsyncTransformer, Closeable {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     public static final long KEEP_ALIVE_TIME = 60L;
 
     public static final int MAX_POOL_SIZE = 20;
@@ -130,7 +123,6 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
     }
     
     private final Configuration config;
-    ExtractionParameters extractionParameters;
     private final Any23 any23;
     
     protected final Set<String> activeRequests = new HashSet<String>();
@@ -143,6 +135,8 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
     int corePoolSize = CORE_POOL_SIZE;
     int maxPoolSize = MAX_POOL_SIZE;
     long keepAliveTime = KEEP_ALIVE_TIME;
+
+    private final ValidationMode validationMode;
     
     public Any23Transformer() {
         this(null, null);
@@ -165,8 +159,7 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
         } else {
             this.config = DefaultConfiguration.singleton();
         }
-        extractionParameters = new ExtractionParameters(this.config, 
-                vm == null ? DEFAULT_VALIDATION_MODE : vm);
+        this.validationMode = vm == null ? DEFAULT_VALIDATION_MODE : vm;
         any23 = new Any23(this.config);
     }
 
@@ -251,14 +244,38 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
             throws IOException {
         //syncronously check the request
         HttpServletRequest req = entity.getRequest();
-        MimeType type = entity.getType();
-        if(DETECTION_MIME_TYPES.contains(type)){
-            //TODO detect the type
-        }
-        log.info("> schedule transformation of Entity[id: {}|type: {}]", requestId, type);
-        DocumentSource source = new TmpFileDocumentSource(requestId, entity.getData(), type);
         
-        TransformationJob job = new TransformationJob(requestId, source);
+        ExtractionParameters extractionParams = new ExtractionParameters(config, validationMode);
+        
+        //Create the Document URI form the content location:
+        String documentUri;
+        URI contentLoc = entity.getContentLocation();
+        if(contentLoc != null){
+        	String contentLocStr = contentLoc.toString();
+        	if(contentLoc.isAbsolute()){
+        		documentUri = contentLocStr;
+        	} else { //relative to the request URI
+        		StringBuffer uri = req.getRequestURL();
+        		//check if we need to add a path separator
+        		if(contentLocStr.charAt(0) != '/' || contentLocStr.charAt(0) != '#' ||
+        				uri.charAt(uri.length() - 1) == '/'){
+        			uri.append('/');
+        		}
+        		uri.append(contentLocStr); //append the relative
+        		documentUri = uri.toString();
+        	}
+        } else { //no content location fall back to the request ID
+        	documentUri = req.getRequestURL().append(requestId).toString();
+        }
+        log.info("> schedule transformation of Entity[id: {}|type: {}]", requestId, 
+        		entity.getType());
+        //NOTE: We need to consume the data from the request before we end the
+        //      sync. request processing.
+        DocumentSource source = new TmpFileDocumentSource(requestId, entity.getData(), 
+        		entity.getType(), documentUri);
+        log.debug(" - created {}", source);
+        //Now create the job for async. processing 
+        TransformationJob job = new TransformationJob(requestId, extractionParams, source);
         
         requestLock.writeLock().lock();
         try {
@@ -300,33 +317,40 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
 
         private final String id;
         private final DocumentSource source;
+        private ExtractionParameters extractionParams;
 
-        public TransformationJob(String id, DocumentSource source) {
+        public TransformationJob(String id, ExtractionParameters extractionParams,
+                DocumentSource source) {
             this.id = id;
+            this.extractionParams = extractionParams;
             this.source = source;
 
         }
 
         @Override
         public void run() {
-        	log.info(" - transform Entity [id:{}]",id);
+            log.info(" - transform Entity [id:{}]",id);
             try {
-            	long start = System.currentTimeMillis();
+                long start = System.currentTimeMillis();
                 TmpFileEntity transformed = new TmpFileEntity(id, OUTPUT);
-                OutputStream out = transformed.getWriter();
+                OutputStream out = null;
+                TripleHandler handler = null;
                 try {
-                    TripleHandler handler = new TurtleWriter(out);
-	            	any23.extract(extractionParameters, source, handler, UTF8.name());
-	            	handler.close();
+                	out = transformed.getWriter();
+                    handler = new TurtleWriter(out);
+                    any23.extract(extractionParams, source, handler, UTF8.name());
                 } finally {
-	            	IOUtils.closeQuietly(out);
+                	if(handler != null){
+                		handler.close();
+                	}
+                    IOUtils.closeQuietly(out);
                 }
                 requestLock.writeLock().lock();
                 try {
                     activeRequests.remove(id);
                     getCallBackHandler().responseAvailable(id, transformed);
-                	log.info(" - transformed Entity [id:{}] in {}ms",id,
-                			System.currentTimeMillis()-start);
+                    log.info(" - transformed Entity [id:{}] in {}ms",id,
+                            System.currentTimeMillis()-start);
                 } finally {
                     requestLock.writeLock().unlock();
                 }
@@ -336,12 +360,11 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
                 getCallBackHandler().reportException(id, e);
             } catch (TripleHandlerException e) {
                 getCallBackHandler().reportException(id, e);
-			} finally {
-            	if(source instanceof Closeable){
-            		try {
-						((Closeable)source).close();
-					} catch (IOException e) { /* ignore */ }
-            	}
+            } finally {
+                if(source instanceof Closeable){
+                	log.debug(" - close {}",source);
+                	IOUtils.closeQuietly((Closeable)source);
+                }
             }
             
         }

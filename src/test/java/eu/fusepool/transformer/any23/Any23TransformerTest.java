@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ResponseBodyData;
+import com.jayway.restassured.specification.RequestSpecification;
+import com.jayway.restassured.specification.ResponseSpecification;
 
 import eu.fusepool.p3.transformer.server.TransformerServer;
 import eu.fusepool.p3.vocab.TRANSFORMER;
@@ -52,6 +54,7 @@ public class Any23TransformerTest {
 	private static final int RETRY_WAIT = MIN_TIMEOUT/MAX_RETRY;
 
 	private static final UriRef SINDICE_ROW = new UriRef("http://vocab.sindice.net/csv/Row");
+	private static final UriRef SINDICE_ROW_PROP = new UriRef("http://vocab.sindice.net/csv/row");
 
 	private static final Logger log = LoggerFactory.getLogger(Any23TransformerTest.class);
 
@@ -171,9 +174,11 @@ public class Any23TransformerTest {
 	@Test
 	public void textCsvPost() throws Exception {
 		log.info("> test CSV");
+		String contentLocation = "http://www.test.org/fusepool/transformer/csv/";
+		UriRef contentLocationUri = new UriRef(contentLocation);
 		String acceptType = "text/turtle";
 		ResponseBodyData result = validateAsyncTransformerRequest(BASE_URI, 
-				"text/csv;charset=UTF-8", CSV_CONTENT, acceptType);
+				"text/csv;charset=UTF-8", CSV_CONTENT, contentLocation, acceptType);
 		Graph graph = parser.parse(result.asInputStream(), acceptType);
 		int rowsCount = 0;
 		Iterator<Triple> it = graph.filter(null, RDF.type, SINDICE_ROW);
@@ -181,6 +186,9 @@ public class Any23TransformerTest {
 		while(it.hasNext()){
 			NonLiteral rowRes = it.next().getSubject();
 			assertTrue(rowRes instanceof UriRef);
+			UriRef rowUri = (UriRef)rowRes;
+			assertTrue(rowUri.getUnicodeString().startsWith(contentLocation));
+			assertTrue(graph.contains(new TripleImpl(contentLocationUri, SINDICE_ROW_PROP, rowUri)));
 			log.info(" - asser Row {}", rowRes);
 			//TODO: assert row contents
 			rowsCount++;
@@ -193,7 +201,7 @@ public class Any23TransformerTest {
 		log.info("> test HTML with RDFa annottions");
 		String acceptType = "text/turtle";
 		ResponseBodyData result = validateAsyncTransformerRequest(BASE_URI, 
-				"text/html;charset=UTF-8", HTML_RDFA_CONTENT, acceptType);
+				"text/html;charset=UTF-8", HTML_RDFA_CONTENT, null, acceptType);
 		Graph graph = parser.parse(result.asInputStream(), acceptType);
 		assertTrue(graph.size() > 0);
 	}
@@ -203,7 +211,7 @@ public class Any23TransformerTest {
 		log.info("> test HTML with Microformat annotations");
 		String acceptType = "text/turtle";
 		ResponseBodyData result = validateAsyncTransformerRequest(BASE_URI, 
-				"text/html;charset=UTF-8", HTML_MICROFORMAT_CONTENT, acceptType);
+				"text/html;charset=UTF-8", HTML_MICROFORMAT_CONTENT, null, acceptType);
 		Graph graph = parser.parse(result.asInputStream(), acceptType);
 		assertTrue(graph.size() > 0);
 	}
@@ -213,7 +221,7 @@ public class Any23TransformerTest {
 		log.info("> test HTML with schema.org Microdata information");
 		String acceptType = "text/turtle";
 		ResponseBodyData result = validateAsyncTransformerRequest(BASE_URI, 
-				"text/html;charset=UTF-8", HTML_MICRODATA_CONTENT, acceptType);
+				"text/html;charset=UTF-8", HTML_MICRODATA_CONTENT, null, acceptType);
 		Graph graph = parser.parse(result.asInputStream(), acceptType);
 		assertTrue(graph.size() > 0);
 	}
@@ -223,7 +231,7 @@ public class Any23TransformerTest {
 		log.info("> test RDF/XML file");
 		String acceptType = "text/turtle";
 		ResponseBodyData result = validateAsyncTransformerRequest(BASE_URI, 
-				"application/rdf+xml;charset=UTF-8", RDF_XML_CONTENT, acceptType);
+				"application/rdf+xml;charset=UTF-8", RDF_XML_CONTENT, null, acceptType);
 		MGraph graph = new SimpleMGraph(parser.parse(result.asInputStream(), acceptType));
 		assertTrue("Transformed Graph has " +graph.size() 
 				+ "triples while the original one had "+ RDF_XML_CONTENT_GRAPH.size(),
@@ -262,12 +270,12 @@ public class Any23TransformerTest {
 		Graph graph;
 		log.info(" - HTML with RDFa");
 		result = validateAsyncTransformerRequest(BASE_URI, 
-				contentType, HTML_RDFA_CONTENT, acceptType);
+				contentType, HTML_RDFA_CONTENT, null, acceptType);
 		graph = parser.parse(result.asInputStream(), acceptType);
 		assertTrue(graph.size() > 0);
 		log.info(" - CSV");
 		result = validateAsyncTransformerRequest(BASE_URI, 
-				contentType, CSV_CONTENT, acceptType);
+				contentType, CSV_CONTENT, null, acceptType);
 		graph = parser.parse(result.asInputStream(), acceptType);
 		assertTrue(graph.size() > 0);
 	}
@@ -287,19 +295,28 @@ public class Any23TransformerTest {
 	 * @param postURI the URI to post to
 	 * @param contentType the content type
 	 * @param content the content
+	 * @param contentLocation the content location
 	 * @param acceptType the accept content type
 	 * @return the response data
 	 * @throws InterruptedException
 	 */
 	public static ResponseBodyData validateAsyncTransformerRequest(String postURI,
-			String contentType, byte[] content, final String acceptType)
-			throws InterruptedException {
+			String contentType, byte[] content, String contentLocation, 
+			final String acceptType) throws InterruptedException {
 		//(1) send the transformer request
-		Response response = RestAssured.given().header("Accept", acceptType)
-				.contentType(contentType).body(content)
-				.expect().statusCode(HttpStatus.SC_ACCEPTED)
-				.when()
-				.post(postURI);
+		RequestSpecification reqSpec = RestAssured.given();
+		if(acceptType != null){
+			reqSpec.header("Accept", acceptType);
+		}
+		if(contentLocation != null){
+			reqSpec.header("Content-Location", contentLocation);
+		}
+		if(contentType != null){
+			reqSpec.contentType(contentType);
+		}
+		ResponseSpecification resSpec = reqSpec.body(content).expect();
+		resSpec.statusCode(HttpStatus.SC_ACCEPTED);
+		Response response = resSpec.when().post(postURI);
 		String location = response.getHeader("location");
 		log.info(" - accepted with location: {}", location);
 		
