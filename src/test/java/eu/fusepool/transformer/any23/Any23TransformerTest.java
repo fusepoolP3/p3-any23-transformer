@@ -189,7 +189,7 @@ public class Any23TransformerTest {
 			UriRef rowUri = (UriRef)rowRes;
 			assertTrue(rowUri.getUnicodeString().startsWith(contentLocation));
 			assertTrue(graph.contains(new TripleImpl(contentLocationUri, SINDICE_ROW_PROP, rowUri)));
-			log.info(" - asser Row {}", rowRes);
+			log.info(" - assert Row {}", rowRes);
 			//TODO: assert row contents
 			rowsCount++;
 		}

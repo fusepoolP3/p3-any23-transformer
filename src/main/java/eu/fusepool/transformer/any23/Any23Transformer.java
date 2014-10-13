@@ -242,6 +242,9 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
     @Override
     public void transform(HttpRequestEntity entity, String requestId)
             throws IOException {
+        log.debug("> transform request {}", requestId);
+        log.debug(" - mime: {}",entity.getType());
+        log.debug(" - contentLoc: {}",entity.getContentLocation());
         //syncronously check the request
         HttpServletRequest req = entity.getRequest();
         
@@ -251,34 +254,48 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
         String documentUri;
         URI contentLoc = entity.getContentLocation();
         if(contentLoc != null){
-        	String contentLocStr = contentLoc.toString();
-        	if(contentLoc.isAbsolute()){
-        		documentUri = contentLocStr;
-        	} else { //relative to the request URI
-        		StringBuffer uri = req.getRequestURL();
-        		//check if we need to add a path separator
-        		if(contentLocStr.charAt(0) != '/' || contentLocStr.charAt(0) != '#' ||
-        				uri.charAt(uri.length() - 1) == '/'){
-        			uri.append('/');
-        		}
-        		uri.append(contentLocStr); //append the relative
-        		documentUri = uri.toString();
-        	}
+            String contentLocStr = contentLoc.toString();
+            if(contentLoc.isAbsolute()){
+                documentUri = contentLocStr;
+            } else { //relative to the request URI
+                StringBuffer uri = req.getRequestURL();
+                //check if we need to add a path separator
+                if(contentLocStr.charAt(0) != '/' || contentLocStr.charAt(0) != '#' ||
+                        uri.charAt(uri.length() - 1) == '/'){
+                    uri.append('/');
+                }
+                uri.append(contentLocStr); //append the relative
+                documentUri = uri.toString();
+            }
         } else { //no content location fall back to the request ID
-        	documentUri = req.getRequestURL().append(requestId).toString();
+            //we need to ensure that there are is a separator between the
+            //request URI and the requestID. Also make sure that we do not add
+            //two '/'!
+            StringBuffer uri = req.getRequestURL();
+            boolean slash = uri.charAt(uri.length()-1) == '/';
+            if(requestId.charAt(0) == '/' && slash){
+                uri.append(requestId.subSequence(1, requestId.length()-1));
+            } else {
+                if(!slash && requestId.charAt(0) != '#'){
+                    uri.append('/');
+                }
+                uri.append(requestId);
+            }
+            documentUri = uri.toString();
         }
-        log.info("> schedule transformation of Entity[id: {}|type: {}]", requestId, 
-        		entity.getType());
+        log.debug(" - documentUri: {}",documentUri);
         //NOTE: We need to consume the data from the request before we end the
         //      sync. request processing.
         DocumentSource source = new TmpFileDocumentSource(requestId, entity.getData(), 
-        		entity.getType(), documentUri);
-        log.debug(" - created {}", source);
+                entity.getType(), documentUri);
+        log.debug(" - documentSource: {}", source);
         //Now create the job for async. processing 
         TransformationJob job = new TransformationJob(requestId, extractionParams, source);
         
         requestLock.writeLock().lock();
         try {
+            log.info("> schedule transformation of Entity[id: {} | uri: {} | type: {}]", 
+                    new Object[]{requestId, documentUri, entity.getType()});
             executor.submit(job);
             activeRequests.add(requestId);
         } finally {
@@ -329,41 +346,44 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
 
         @Override
         public void run() {
-            log.info(" - transform Entity [id:{}]",id);
+            log.info("> Transform Entity [id: {}]",id);
             try {
                 long start = System.currentTimeMillis();
                 TmpFileEntity transformed = new TmpFileEntity(id, OUTPUT);
+                log.debug(" - target: {}",transformed);
                 OutputStream out = null;
                 TripleHandler handler = null;
                 try {
-                	out = transformed.getWriter();
+                    out = transformed.getWriter();
                     handler = new TurtleWriter(out);
                     any23.extract(extractionParams, source, handler, UTF8.name());
+                    log.debug(" - transformed in {}ms", System.currentTimeMillis()-start);
                 } finally {
-                	if(handler != null){
-                		handler.close();
-                	}
+                    if(handler != null){
+                        handler.close();
+                    }
                     IOUtils.closeQuietly(out);
                 }
                 requestLock.writeLock().lock();
                 try {
                     activeRequests.remove(id);
                     getCallBackHandler().responseAvailable(id, transformed);
-                    log.info(" - transformed Entity [id:{}] in {}ms",id,
-                            System.currentTimeMillis()-start);
                 } finally {
                     requestLock.writeLock().unlock();
                 }
             } catch (IOException e){
+            	log.warn("Unable to transform Entity "+id,e);
                 getCallBackHandler().reportException(id, e);
             } catch (ExtractionException e) {
+            	log.warn("Unable to transform Entity "+id,e);
                 getCallBackHandler().reportException(id, e);
             } catch (TripleHandlerException e) {
+            	log.warn("Unable to transform Entity "+id,e);
                 getCallBackHandler().reportException(id, e);
             } finally {
                 if(source instanceof Closeable){
-                	log.debug(" - close {}",source);
-                	IOUtils.closeQuietly((Closeable)source);
+                    log.trace(" - close {}",source);
+                    IOUtils.closeQuietly((Closeable)source);
                 }
             }
             

@@ -40,19 +40,19 @@ public class Main {
         options.addOption("p","port",true, 
             String.format("the port for the Any23 transformer (default: %s)",
                 DEFAULT_PORT));
-        options.addOption("c", "config",true, "The Any23 configuration file. Those "
-                + "apptions will be applied on top pf the Any23 default configuration");
+        options.addOption("c", "config",true, "The Any23 configuration file. "
+                + "Will be applied on top of the Any23 default configuration");
         options.addOption("m", "mode", true, "The validation mode used by Any23 ("
                 + "options: "+ Arrays.toString(ValidationMode.values())+", default:" 
                 + Any23Transformer.DEFAULT_VALIDATION_MODE + ")");
         options.addOption("x", "core-pool", true, "The core pool size of the thread "
-        		+ "pool used to transform parsed resoruces (default: "
-        		+ Any23Transformer.CORE_POOL_SIZE + ")");
+                + "pool used to transform parsed resources (default: "
+                + Any23Transformer.CORE_POOL_SIZE + ")");
         options.addOption("y", "max-pool", true, "The maximum pool size of the thread "
-        		+ "pool used to transform parsed resoruces (default: "
-        		+ Any23Transformer.MAX_POOL_SIZE + ")");
+                + "pool used to transform parsed resources (default: "
+                + Any23Transformer.MAX_POOL_SIZE + ")");
         options.addOption("z", "keep-alive", true, "The maximum time that excess "
-        		+ "idle threads (default: " + Any23Transformer.KEEP_ALIVE_TIME + ")");
+                + "idle threads (default: " + Any23Transformer.KEEP_ALIVE_TIME + ")");
 
     }
 
@@ -68,17 +68,17 @@ public class Main {
         }
         int port = -1;
         if(line.hasOption('p')){
-        	String portStr = line.getOptionValue('p');
-        	try {
-        		port = Integer.parseInt(portStr);
+            String portStr = line.getOptionValue('p');
+            try {
+                port = Integer.parseInt(portStr);
                 if(port <= 0){
-            		log.error("The parsed Port '{}' MUST BE an positive integer", portStr);
-            		System.exit(1);
+                    log.error("The parsed Port '{}' MUST BE an positive integer", portStr);
+                    System.exit(1);
                 }
-        	} catch (NumberFormatException e) {
-        		log.error(" parsed Port '{}' is not an integer", portStr);
-        		System.exit(1);
-        	}
+            } catch (NumberFormatException e) {
+                log.error(" parsed Port '{}' is not an integer", portStr);
+                System.exit(1);
+            }
         } else {
             port = DEFAULT_PORT;
         }
@@ -126,56 +126,56 @@ public class Main {
         
         int corePoolSize = -1;
         if(line.hasOption('x')){
-        	String value = line.getOptionValue('x');
-        	try {
-        		corePoolSize = Integer.parseInt(value);
+            String value = line.getOptionValue('x');
+            try {
+                corePoolSize = Integer.parseInt(value);
                 if(corePoolSize <= 0){
-            		log.error("The parsed core thread pool size '{}' MUST BE an positive integer", value);
-            		System.exit(1);
+                    log.error("The parsed core thread pool size '{}' MUST BE an positive integer", value);
+                    System.exit(1);
                 }
-        	} catch (NumberFormatException e) {
-        		log.error(" parsed parsed core thread pool size '{}' is not an integer", value);
-        		System.exit(1);
-        	}
+            } catch (NumberFormatException e) {
+                log.error(" parsed parsed core thread pool size '{}' is not an integer", value);
+                System.exit(1);
+            }
         } else {
-        	corePoolSize = Any23Transformer.CORE_POOL_SIZE;
+            corePoolSize = Any23Transformer.CORE_POOL_SIZE;
         }
         
         int maxPoolSize = -1;
         if(line.hasOption('y')){
-        	String value = line.getOptionValue('y');
-        	try {
-        		maxPoolSize = Integer.parseInt(value);
+            String value = line.getOptionValue('y');
+            try {
+                maxPoolSize = Integer.parseInt(value);
                 if(maxPoolSize <= 0){
-            		log.error("The parsed max thread pool size '{}' MUST BE an positive integer", value);
-            		System.exit(1);
+                    log.error("The parsed max thread pool size '{}' MUST BE an positive integer", value);
+                    System.exit(1);
                 }
-        	} catch (NumberFormatException e) {
-        		log.error(" parsed parsed max thread pool size '{}' is not an integer", value);
-        		System.exit(1);
-        	}
+            } catch (NumberFormatException e) {
+                log.error(" parsed parsed max thread pool size '{}' is not an integer", value);
+                System.exit(1);
+            }
         } else {
-        	maxPoolSize = Any23Transformer.MAX_POOL_SIZE;
+            maxPoolSize = Any23Transformer.MAX_POOL_SIZE;
         }
 
         long keepAliveTime = -1;
         if(line.hasOption('z')){
-        	String value = line.getOptionValue('z');
-        	try {
-        		keepAliveTime = Integer.parseInt(value);
+            String value = line.getOptionValue('z');
+            try {
+                keepAliveTime = Integer.parseInt(value);
                 if(keepAliveTime <= 0){
-            		log.error("The parsed keep alive time '{}' MUST BE an positive integer", value);
-            		System.exit(1);
+                    log.error("The parsed keep alive time '{}' MUST BE an positive integer", value);
+                    System.exit(1);
                 }
-        	} catch (NumberFormatException e) {
-        		log.error(" parsed parsed keep alive time '{}' is not an integer", value);
-        		System.exit(1);
-        	}
+            } catch (NumberFormatException e) {
+                log.error(" parsed parsed keep alive time '{}' is not an integer", value);
+                System.exit(1);
+            }
         } else {
-        	keepAliveTime = Any23Transformer.KEEP_ALIVE_TIME;
+            keepAliveTime = Any23Transformer.KEEP_ALIVE_TIME;
         }
         log.info("    - thread pool:[core: {}| max: {}| keep: {}sec]", 
-        		new Object[]{corePoolSize, maxPoolSize, keepAliveTime});
+                new Object[]{corePoolSize, maxPoolSize, keepAliveTime});
         
         log.info(" ... init Transformer ...");
         Any23Transformer transformer = new Any23Transformer(config, mode);
@@ -198,11 +198,9 @@ public class Main {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp(
             "java -Xmx{size} -jar {jar-name} [options]",
-            "Indexing Commandline Utility: \n"+
-            "  size:        Heap requirements depend on the size of files to be \n"+
-            "               Transformed. 1024m should be a reasonable default.\n",
+            "Any23 Transformer: \n",
             options,
-            null);
+            "provided by Fusepool P3 and powered by http://any23.apache.org");
     }
 
 }

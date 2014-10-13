@@ -114,6 +114,50 @@
           <target>1.7</target>
         </configuration>
       </plugin>
+      <plugin> <!-- This uses the shade plugin for creating a runable jar -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <!-- addClasspath>true</addClasspath -->
+              <mainClass>eu.fusepool.transformer.any23.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+            <artifactSet>
+              <includes>
+                <include>*</include>
+              </includes>
+            </artifactSet>
+            <transformers>
+              <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+            </transformers>
+            <filters> <!-- bouncycastle jars include some files we MUST NOT have -->
+              <filter>
+                <artifact>org.bouncycastle:*</artifact>
+                <excludes>
+                  <exclude>META-INF/*.SF</exclude>
+                  <exclude>META-INF/*.DSA</exclude>
+                  <exclude>META-INF/*.RSA</exclude>
+                </excludes>
+              </filter>
+            </filters>
+          </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -123,36 +167,19 @@
           <version>2.3.1</version>
         </plugin>
         <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-scr-plugin</artifactId>
-          <version>1.16.0</version>
-          <!-- slf4j impl is needed when QDox inspects/loads classes that use a
-             static field for the logger, so that those classes can be loaded. -->
-          <dependencies>
-            <dependency>
-              <groupId>org.slf4j</groupId>
-              <artifactId>slf4j-simple</artifactId>
-              <version>1.6.1</version>
-            </dependency>
-          </dependencies>
-          <executions>
-            <execution>
-              <id>generate-scr-scrdescriptor</id>
-              <goals>
-                <goal>scr</goal>
-              </goals>
-              <configuration>
-                <properties>
-                  <service.vendor>Fusepool P3</service.vendor>
-                </properties>
-              </configuration>
-            </execution>
-          </executions>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.3.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>1.0.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.1</version>
         </plugin>
         
       </plugins>
@@ -180,6 +207,16 @@
       <groupId>org.apache.any23</groupId>
       <artifactId>apache-any23-core</artifactId>
       <version>1.0</version>
+      <!-- exclusions> - those are now treated in the shade plugin config
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcmail-jdk15</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15</artifactId>
+        </exclusion>
+      </exclusions -->
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -196,6 +233,11 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.6.1</version>
     </dependency>
+    <dependency>  <!-- logging support for the runable jar -->
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.1</version>
+    </dependency>
     
     <!-- Test dependencies -->
     <dependency>
@@ -210,12 +252,6 @@
       <version>2.3.1</version>
       <scope>test</scope>
     </dependency>
-    <dependency>  <!-- used for debug level logging during tests -->
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.1</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
@@ -226,16 +262,19 @@
       <groupId>org.apache.clerezza</groupId>
       <artifactId>rdf.jena.serializer</artifactId>
       <version>0.11</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.clerezza</groupId>
       <artifactId>rdf.jena.parser</artifactId>
       <version>0.12</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.clerezza</groupId>
       <artifactId>rdf.rdfjson</artifactId>
       <version>0.4</version>
+      <scope>test</scope>
     </dependency>
     
   </dependencies>

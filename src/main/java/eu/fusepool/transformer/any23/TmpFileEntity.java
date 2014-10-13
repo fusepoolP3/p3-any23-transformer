@@ -79,6 +79,14 @@ public class TmpFileEntity implements Entity, Closeable {
 			IOUtils.closeQuietly(in);
 		}
 	}
+	
+    @Override
+    public String toString() {
+        return new StringBuilder(getClass().getSimpleName()).append("[file: ")
+                .append(tmpFile).append("]").toString();
+    }
+
+	
 	/**
 	 * Deletes the tmp file
 	 */
