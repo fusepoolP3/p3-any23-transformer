@@ -32,7 +32,7 @@
 
   <groupId>eu.fusepool.p3.any23-transformer</groupId>
   <artifactId>any23-transformer</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>Fusepool Any23 Transformer</name>
@@ -46,7 +46,7 @@
     <url>https://github.com/fusepoolp3/p3-any23-transformer</url>
     <connection>scm:git:https://github.com/fusepoolp3/p3-any23-transformer</connection>
     <developerConnection>scm:git:git@github.com:fusepoolp3/p3-any23-transformer.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>any23-transformer-1.0.1</tag>
   </scm>
 
   <developers>
@@ -136,7 +136,7 @@
               </includes>
             </artifactSet>
             <transformers>
-              <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
             </transformers>
             <filters> <!-- bouncycastle jars include some files we MUST NOT have -->
               <filter>
