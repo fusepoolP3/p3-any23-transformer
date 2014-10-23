@@ -8,3 +8,5 @@ deploy:
   skip_cleanup: true
   on:
     repo: fusepoolP3/p3-any23-transformer
+    tags: true
+    all_branches: true
