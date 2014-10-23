@@ -279,9 +279,9 @@
     
   </dependencies>
   <repositories>
-    <repository>
+    <repository> <!-- needed for travis builds -->
       <id>any23-repository-external</id>
-      <url>http://svn.apache.org/repos/asf/any23/repo-ext/</url>
+      <url>https://raw.githubusercontent.com/fusepoolP3/p3-any23-transformer/master/repo-ext</url>
     </repository>
   </repositories>
 </project>
