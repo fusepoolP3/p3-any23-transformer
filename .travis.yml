@@ -1,5 +1,5 @@
 language: java
-before_install: mvn install -DskipTests=true -DfinalName=proxy-$TRAVIS_TAG
+before_install: mvn install -DskipTests=true -DfinalName=any23-transformer-$TRAVIS_TAG
 deploy:
   edge: true
   provider: releases
