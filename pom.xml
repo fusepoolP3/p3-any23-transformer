@@ -32,7 +32,7 @@
 
   <groupId>eu.fusepool.p3.any23-transformer</groupId>
   <artifactId>any23-transformer</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Fusepool Any23 Transformer</name>
@@ -46,7 +46,7 @@
     <url>https://github.com/fusepoolp3/p3-any23-transformer</url>
     <connection>scm:git:https://github.com/fusepoolp3/p3-any23-transformer</connection>
     <developerConnection>scm:git:git@github.com:fusepoolp3/p3-any23-transformer.git</developerConnection>
-    <tag>any23-transformer-1.0.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <developers>
