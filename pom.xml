@@ -207,16 +207,16 @@
       <groupId>org.apache.any23</groupId>
       <artifactId>apache-any23-core</artifactId>
       <version>1.0</version>
-      <!-- exclusions> - those are now treated in the shade plugin config
-        <exclusion>
+      <exclusions> 
+        <!-- exclusion> - those are now treated in the shade plugin config
           <groupId>org.bouncycastle</groupId>
           <artifactId>bcmail-jdk15</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.bouncycastle</groupId>
           <artifactId>bcprov-jdk15</artifactId>
-        </exclusion>
-      </exclusions -->
+        </exclusion -->
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -278,5 +278,10 @@
     </dependency>
     
   </dependencies>
-
+  <repositories>
+    <repository>
+      <id>any23-repository-external</id>
+      <url>http://svn.apache.org/repos/asf/any23/repo-ext/</url>
+    </repository>
+  </repositories>
 </project>

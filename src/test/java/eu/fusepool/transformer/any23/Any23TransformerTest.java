@@ -366,9 +366,9 @@ public class Any23TransformerTest {
 		}
 		//NOTE: uncomment for debugging so that the server is not killed as the
 		//      timeout is over ...
-//		synchronized (postURI) {
-//			postURI.wait();
-//		}
+		synchronized (postURI) {
+			postURI.wait();
+		}
 		fail("Timeout after " + retry + "/"+MAX_RETRY+" rtries and/or " 
 				+ (System.currentTimeMillis()-start)/1000 + "/"+(MAX_TIMEOUT/1000)+"sec");
 		return null;

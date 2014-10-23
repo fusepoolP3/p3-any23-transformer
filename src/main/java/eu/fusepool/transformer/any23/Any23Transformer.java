@@ -347,9 +347,12 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
         @Override
         public void run() {
             log.info("> Transform Entity [id: {}]",id);
+            boolean success = false;
+            TmpFileEntity transformed = null;
+            Exception ex = null;
             try {
                 long start = System.currentTimeMillis();
-                TmpFileEntity transformed = new TmpFileEntity(id, OUTPUT);
+                transformed = new TmpFileEntity(id, OUTPUT);
                 log.debug(" - target: {}",transformed);
                 OutputStream out = null;
                 TripleHandler handler = null;
@@ -357,33 +360,52 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
                     out = transformed.getWriter();
                     handler = new TurtleWriter(out);
                     any23.extract(extractionParams, source, handler, UTF8.name());
+                    success = true;
                     log.debug(" - transformed in {}ms", System.currentTimeMillis()-start);
-                } finally {
+                } finally { //close all the streams
+                    if(source instanceof Closeable){
+                        log.trace(" - close {}",source);
+                        IOUtils.closeQuietly((Closeable)source);
+                    }
                     if(handler != null){
+                        log.trace(" - close {}",handler);
                         handler.close();
                     }
+                    log.trace(" - close {}",out);
                     IOUtils.closeQuietly(out);
-                }
-                requestLock.writeLock().lock();
-                try {
-                    activeRequests.remove(id);
-                    getCallBackHandler().responseAvailable(id, transformed);
-                } finally {
-                    requestLock.writeLock().unlock();
                 }
             } catch (IOException e){
             	log.warn("Unable to transform Entity "+id,e);
-                getCallBackHandler().reportException(id, e);
+            	ex = e;
             } catch (ExtractionException e) {
             	log.warn("Unable to transform Entity "+id,e);
-                getCallBackHandler().reportException(id, e);
+            	ex = e;
             } catch (TripleHandlerException e) {
             	log.warn("Unable to transform Entity "+id,e);
-                getCallBackHandler().reportException(id, e);
+            	ex = e;
+            } catch (Exception e){
+            	if(ex instanceof InterruptedException){
+            		Thread.currentThread().interrupt();  // set interrupt flag
+            	} else {
+            		ex = new RuntimeException(e);
+            	}
+            	log.error(" - unable to transform job "+id+" (message: "+ex.getMessage()+")!", ex);
             } finally {
-                if(source instanceof Closeable){
-                    log.trace(" - close {}",source);
-                    IOUtils.closeQuietly((Closeable)source);
+            	
+                requestLock.writeLock().lock();
+                try {
+                    activeRequests.remove(id);
+                    if(success) {
+                    	getCallBackHandler().responseAvailable(id, transformed);
+                    } else {
+                    	if(ex == null){ //an Error was thrown
+                    		ex = new RuntimeException("Error while processing "+id);
+                    	} //else catched Exception
+                    	getCallBackHandler().reportException(id, ex);
+                    }
+                } finally {
+                    requestLock.writeLock().unlock();
+                    //in any case try to close the source
                 }
             }
             
