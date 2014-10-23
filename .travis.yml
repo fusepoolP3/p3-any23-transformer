@@ -1,11 +1,10 @@
 language: java
 before_install: mvn install -DskipTests=true -DfinalName=any23-transformer-$TRAVIS_TAG
 deploy:
-  edge: true
   provider: releases
-  api-key:
-    - secure: VWL+B2S6Xixj+actXHzxMJCKeaLVKejyiK88FJEM1+deYJ8rcUGz1PUYMFN2yf5qQShIEuWr3qQrtLq6gxocvGh4peWdPqGMIkjIr+tXTozaGJ+2ogknXyOm0PoxSmHgwXL48H/bEuEjgzqYroBhc0EMjiskI47lJNrmeDq7mtM=
+  api_key:
+    secure: ZkxhBuq+2z0JA6y7nq6LZsr0wZkd/pAxP2JoeMRTOsl3YLUXzYL2KnOgB7mAMo5x48KRjSEA0J3JPLNfC3qU8jkpriqvP7XajuDGjOzSgBZnsrAZWyWbAj/n0CqpA2eLDvn/GY6d1UqSn4UZvsb6n4S90OJm51lo4Hlt55Me/Xc=
   file: target/any23-transformer-$TRAVIS_TAG.jar
+  skip_cleanup: true
   on:
-    tags: true
-    all_branches: true
+    repo: fusepoolP3/p3-any23-transformer
