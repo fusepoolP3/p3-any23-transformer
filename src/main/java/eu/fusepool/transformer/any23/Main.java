@@ -62,7 +62,7 @@ public class Main {
         CommandLineParser parser = new PosixParser();
         CommandLine line = parser.parse(options, args);
         args = line.getArgs();
-        if(line.hasOption('h') || args.length <= 0){
+        if(line.hasOption('h')){
             printHelp();
             System.exit(0);
         }
@@ -183,12 +183,12 @@ public class Main {
         transformer.setMaxPoolSize(maxPoolSize);
         transformer.setKeepAliveTime(keepAliveTime);
         
-        log.info(" ... init Server ...");
-        TransformerServer server = new TransformerServer(Integer.parseInt(args[0]));
+        log.info(" ... init Server on port {}...", port);
+        TransformerServer server = new TransformerServer(port);
         log.info(" ... start Server ...");
         server.start(transformer);
-        log.info(" ... shutdown ...");
-        transformer.close();
+        //log.info(" ... shutdown ...");
+        //transformer.close();
     }
     
     /**

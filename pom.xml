@@ -206,12 +206,12 @@
     <dependency>
       <groupId>org.apache.any23</groupId>
       <artifactId>apache-any23-api</artifactId>
-      <version>1.0</version>
+      <version>1.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.any23</groupId>
       <artifactId>apache-any23-core</artifactId>
-      <version>1.0</version>
+      <version>1.1</version>
       <exclusions> 
         <!-- exclusion> - those are now treated in the shade plugin config
           <groupId>org.bouncycastle</groupId>
@@ -231,7 +231,7 @@
     <dependency>
       <groupId>eu.fusepool.p3</groupId>
       <artifactId>transformer-implementation-library</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -243,6 +243,14 @@
       <artifactId>slf4j-log4j12</artifactId>
       <version>1.6.1</version>
     </dependency>
+
+    <!-- the transformer core requires a turtle serializer -->
+    <dependency>
+      <groupId>org.apache.clerezza</groupId>
+      <artifactId>rdf.jena.serializer</artifactId>
+      <version>0.11</version>
+    </dependency>
+    
     
     <!-- Test dependencies -->
     <dependency>
@@ -261,12 +269,6 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
       <version>4.2.4</version>
-      <scope>test</scope>
-    </dependency>
-        <dependency>
-      <groupId>org.apache.clerezza</groupId>
-      <artifactId>rdf.jena.serializer</artifactId>
-      <version>0.11</version>
       <scope>test</scope>
     </dependency>
     <dependency>
