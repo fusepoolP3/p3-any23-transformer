@@ -387,7 +387,7 @@ public class Any23Transformer implements AsyncTransformer, Closeable {
             	if(ex instanceof InterruptedException){
             		Thread.currentThread().interrupt();  // set interrupt flag
             	} else {
-            		ex = new RuntimeException(e);
+            		ex = new RuntimeException("Error while processing Request "+ id, e);
             	}
             	log.error(" - unable to transform job "+id+" (message: "+ex.getMessage()+")!", ex);
             } finally {

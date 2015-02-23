@@ -97,7 +97,7 @@ public class Any23TransformerTest {
 		final int port = findFreePort();
 		BASE_URI = "http://localhost:" + port + "/";
 		BASE_URI_REF = new UriRef(BASE_URI);
-		TransformerServer server = new TransformerServer(port);
+		TransformerServer server = new TransformerServer(port, true);
 		server.start(new Any23Transformer());
 		
 		//init the CSV content test data

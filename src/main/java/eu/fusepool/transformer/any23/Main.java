@@ -184,7 +184,7 @@ public class Main {
         transformer.setKeepAliveTime(keepAliveTime);
         
         log.info(" ... init Server on port {}...", port);
-        TransformerServer server = new TransformerServer(port);
+        TransformerServer server = new TransformerServer(port,true);
         log.info(" ... start Server ...");
         server.start(transformer);
         //log.info(" ... shutdown ...");
