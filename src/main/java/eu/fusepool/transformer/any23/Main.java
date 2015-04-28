@@ -32,7 +32,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     
     private static final Options options;
-    private static final int DEFAULT_PORT = 8194;
+    private static final int DEFAULT_PORT = 8303;
     
     static {
         options = new Options();

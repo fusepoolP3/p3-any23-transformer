@@ -26,7 +26,7 @@ Calling
 
     java -Xmx1g -jar any23-transformer-{version}.jar
 
-will run the Any23 Transformer on port `8080` with the default Any23 configuration
+will run the Any23 Transformer on port `8303` with the default Any23 configuration
 and a thread pool of min `3` and max `20` threads.
 
 The command line tool provides the following configuration parameters:
@@ -39,7 +39,7 @@ The command line tool provides the following configuration parameters:
      -h,--help                    display this help and exit
      -m,--mode <arg>              The validation mode used by Any23 (options:
                                   [None, Validate, ValidateAndFix], default:ValidateAndFix)
-     -p, -P,--port. --Port <arg>  the port for the Any23 transformer (default: 8194)
+     -p, -P,--port. --Port <arg>  the port for the Any23 transformer (default: 8303)
      -x,--core-pool <arg>         The core pool size of the thread pool used to
                                   transform parsed resources (default: 3)
      -y,--max-pool <arg>          The maximum pool size of the thread pool used to
@@ -55,11 +55,11 @@ communication is expected as specified by the Fusepool.
 
 The capabilities of a transformer can be requested by a simple GET request at 
 the base URI. The following listing shows the response of the Any23 transformer 
-running at localhost at port `8087`
+running at localhost at port `8303`
 
-    curl http://localhost:8087/
+    curl http://localhost:8303/
 
-    <http://localhost:8087/>
+    <http://localhost:8303/>
         <http://vocab.fusepool.info/transformer#supportedInputFormat>
             "text/csv"^^xsd:string , "application/octet-stream"^^xsd:string ,
             "text/turtle"^^xsd:string , "application/rdf+xml"^^xsd:string ,
@@ -78,7 +78,7 @@ RDFa is embedded in an HTML document (XHTML would be an other option).
     curl -v -X "POST" -H "Content-Type: text/html;charset=UTF-8" \
         -H "Content-Location: http://www.example.org/fusepool/rdfa-example.html" 
         -T "test/resources/rdfa11.html" \
-        http://localhost:8087/
+        http://localhost:8303/
 
 NOTE that the above request does set the “Content-Location” header. The parsed 
 value will be used as base URI for the extracted knowledge. If this parameter 
@@ -96,7 +96,7 @@ this request is a `202 Accept` with the location of the transformation job
 No one can send a GET request to the job to retrieve the current status or if 
 finished the final result.
 
-    curl http://localhost:8087/job/1678699a-ed36-4282-aaf8-1823aea19970
+    curl http://localhost:8303/job/1678699a-ed36-4282-aaf8-1823aea19970
 
 In this case this will return the extracted Good Relation statements 
 serialized as `text/turtle`
