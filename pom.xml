@@ -226,7 +226,7 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>9.2.0.RC0</version>
+      <version>9.2.10.v20150310</version>
     </dependency>
     <dependency>
       <groupId>eu.fusepool.p3</groupId>
@@ -236,12 +236,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.1</version>
+      <version>1.7.12</version>
     </dependency>
     <dependency>  <!-- logging support for the runable jar -->
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.1</version>
+      <version>1.7.12</version>
     </dependency>
 
     <!-- the transformer core requires a turtle serializer -->

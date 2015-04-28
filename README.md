@@ -34,17 +34,17 @@ The command line tool provides the following configuration parameters:
     java -Xmx{size} -jar {jar-name} [options]
     Any23 Transformer:
     
-     -c,--config <arg>       The Any23 configuration file. Will be applied on
-                             top of the Any23 default configuration
-     -h,--help               display this help and exit
-     -m,--mode <arg>         The validation mode used by Any23 (options:
-                             [None, Validate, ValidateAndFix], default:ValidateAndFix)
-     -p,--port <arg>         the port for the Any23 transformer (default: 8080)
-     -x,--core-pool <arg>    The core pool size of the thread pool used to
-                             transform parsed resources (default: 3)
-     -y,--max-pool <arg>     The maximum pool size of the thread pool used to
-                             transform parsed resources (default: 20)
-     -z,--keep-alive <arg>   The maximum time that excess idle threads (default: 60)
+     -c,--config <arg>            The Any23 configuration file. Will be applied on
+                                  top of the Any23 default configuration
+     -h,--help                    display this help and exit
+     -m,--mode <arg>              The validation mode used by Any23 (options:
+                                  [None, Validate, ValidateAndFix], default:ValidateAndFix)
+     -p, -P,--port. --Port <arg>  the port for the Any23 transformer (default: 8194)
+     -x,--core-pool <arg>         The core pool size of the thread pool used to
+                                  transform parsed resources (default: 3)
+     -y,--max-pool <arg>          The maximum pool size of the thread pool used to
+                                  transform parsed resources (default: 20)
+     -z,--keep-alive <arg>        The maximum time that excess idle threads (default: 60)
 
 Usage:
 -----

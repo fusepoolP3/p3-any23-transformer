@@ -32,7 +32,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     
     private static final Options options;
-    private static final int DEFAULT_PORT = 8080;
+    private static final int DEFAULT_PORT = 8194;
     
     static {
         options = new Options();
@@ -40,6 +40,9 @@ public class Main {
         options.addOption("p","port",true, 
             String.format("the port for the Any23 transformer (default: %s)",
                 DEFAULT_PORT));
+        options.addOption("P","Port",true, 
+                String.format("the port for the Any23 transformer (default: %s)",
+                    DEFAULT_PORT));
         options.addOption("c", "config",true, "The Any23 configuration file. "
                 + "Will be applied on top of the Any23 default configuration");
         options.addOption("m", "mode", true, "The validation mode used by Any23 ("
@@ -67,8 +70,8 @@ public class Main {
             System.exit(0);
         }
         int port = -1;
-        if(line.hasOption('p')){
-            String portStr = line.getOptionValue('p');
+        if(line.hasOption('p') || line.hasOption('P')){
+            String portStr = line.getOptionValue('P',line.getOptionValue('p'));
             try {
                 port = Integer.parseInt(portStr);
                 if(port <= 0){
