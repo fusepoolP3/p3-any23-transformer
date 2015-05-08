@@ -93,7 +93,7 @@ this request is a `202 Accept` with the location of the transformation job
     < Transfer-Encoding: chunked
     < Server: Jetty(9.2.z-SNAPSHOT)
 
-No one can send a GET request to the job to retrieve the current status or if 
+Now one can send a GET request to the job to retrieve the current status or if 
 finished the final result.
 
     curl http://localhost:8303/job/1678699a-ed36-4282-aaf8-1823aea19970
