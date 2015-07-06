@@ -1,5 +1,4 @@
-Any23 Transformer
-=================
+# Any23 Transformer [![Build Status](https://travis-ci.org/fusepoolP3/p3-any23-transformer.svg)](https://travis-ci.org/fusepoolP3/p3-any23-transformer)
 
 This module provides a Fusepool P3 Transformer implementation for 
 [Apache Any23](http://any23.apache.org)
