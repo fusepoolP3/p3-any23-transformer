@@ -7,6 +7,24 @@ The Any23 Transformer is an asynchronous transformer implementation.
 
 ## Try it out
 
+The transformer can be started using the latest release that can be downloaded from the releases section. The executable jar file contains all the necessary dependencies. To start it, run the command
+
+    java -jar any23-transformer-any23-transformer-*.jar 
+
+The transformer will be started and listen on it's default port 8303. 
+
+As an example, a RDFa-document can be sent to the transformer (the document can be found [here](https://github.com/fusepoolP3/p3-any23-transformer/blob/master/src/test/resources/rdfa11.html)):
+
+ curl -v -X "POST" -H "Content-Type: text/html;charset=UTF-8" -T "rdfa11.html" \http://localhost:8303/
+
+After submitting this request, the transformer will answer with an URL where the response can be fetched:
+
+    HTTP/1.1 202 Accepted
+    Date: Mon, 06 Jul 2015 11:07:07 GMT
+    Location: /job/a7e3d269-55c0-40d6-9513-58bb2a966bd5
+
+Thus, by accessing `http://localhost:8303/job/a7e3d269-55c0-40d6-9513-58bb2a966bd5` the resulting RDF data should be returned.
+
 ## Compiling and Running
 
 This module uses Maven as build system. After obtaining the sources, build using
