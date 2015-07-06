@@ -5,21 +5,16 @@ This module provides a Fusepool P3 Transformer implementation for
 
 The Any23 Transformer is an asynchronous transformer implementation.
 
-Building from Source:
----------------------
+## Try it out
 
-This module uses Maven as build system. After cloning just call
+## Compiling and Running
+
+This module uses Maven as build system. After obtaining the sources, build using
 
     mvn clean install
 
-in the root directory
-
-
-Installation:
------
-
-This module builds a runnable jar. After the build succeeds you can find the
-runable jar in the ´/target´ folder.
+in the root directory of the sources, this will build a runnable jar. 
+After the build succeeds you can find it in the ´/target´ folder.
 
 Calling
 
@@ -45,8 +40,8 @@ The command line tool provides the following configuration parameters:
                                   transform parsed resources (default: 20)
      -z,--keep-alive <arg>        The maximum time that excess idle threads (default: 60)
 
-Usage:
------
+
+## Usage
 
 As the Any23 transformer implements the [Fusepool Transfomer API]
 (https://github.com/fusepoolP3/overall-architecture/blob/master/transformer-api.md) 
